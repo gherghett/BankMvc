@@ -1,0 +1,16 @@
+@model List<MvcWithIdentityAndEFCore.Models.Account>;
+@{
+    var name = User?.Identity?.Name ?? throw new Exception("");
+    ViewData["Title"] = $"Accounts for {name}";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Your Accounts</h1>
+    <ul>
+        @foreach(Account account in Model)
+        {
+            <li>Account number: @account.Id Balance: @account.Balance <a class="button" asp-action="Delete" asp-route-id="@account.Id">Remove</a></li>
+        }
+    </ul>
+    <a class="button" asp-action="Add">Add Account</a>
+</div>
