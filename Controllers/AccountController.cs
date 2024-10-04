@@ -35,7 +35,7 @@ public class AccountController : Controller
             // Get the user ID from the ClaimsPrincipal
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
-            if(user is null)
+            if (user is null)
             {
                 throw new Exception("Couldnt find user");
             }
@@ -45,27 +45,28 @@ public class AccountController : Controller
             return RedirectToAction("Login", "Account");
     }
 
-    public async Task<IActionResult> Delete(int id)
+    [Authorize]
+    public async Task<IActionResult> Delete(int accountId)
     {
         if (User?.Identity?.IsAuthenticated ?? false)
         {
             // Get the user
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _dbContext.Users.Where(u => userId == u.Id ).Include(u=>u.Accounts).SingleOrDefault();
+            var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
 
-            if(user is null)
+            if (user is null)
             {
                 throw new Exception("Couldnt find user");
             }
-            
+
             // if the user the owner
-            if(user.Accounts.Where(acc => acc.Id == id).Any())
+            if (OwnsAccount(user, accountId))
             {
                 _dbContext
                 .Remove(
                     user
                     .Accounts
-                        .Where(acc => acc.Id == id)
+                        .Where(acc => acc.Id == accountId)
                         .SingleOrDefault()!);
             }
             else
@@ -83,7 +84,7 @@ public class AccountController : Controller
         else
         {
             return RedirectToAction("Login", "Account");
-        }     
+        }
     }
 
     [Authorize]
@@ -93,9 +94,9 @@ public class AccountController : Controller
         {
             // Get the user ID from the ClaimsPrincipal
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _dbContext.Users.Where(u => userId == u.Id ).Include(u=>u.Accounts).SingleOrDefault();
-            
-            if(user is null || userId is null)
+            var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
+
+            if (user is null || userId is null)
             {
                 throw new Exception("Couldnt find user");
             }
@@ -107,7 +108,7 @@ public class AccountController : Controller
             };
 
             var myaccts = _dbContext.Accounts
-                .Where(acc=>acc.ApplicationUser.Id == userId).ToList();
+                .Where(acc => acc.ApplicationUser.Id == userId).ToList();
             // Add the account to the DbContext
             _dbContext.Accounts.Add(newAccount);
 
@@ -122,6 +123,93 @@ public class AccountController : Controller
             return RedirectToAction("Login", "Account");
         }
     }
+
+    [Authorize]
+    public IActionResult Details(int accountId)
+    {
+        if (User?.Identity?.IsAuthenticated ?? false)
+        {
+            (var userId, var user) = GetUser();
+
+            if (user is null || userId is null)
+            {
+                throw new Exception("Couldnt find user");
+            }
+            if (OwnsAccount(user, accountId))
+            {
+
+                return View(GetAccountById(accountId));
+
+            }
+            else
+            {
+                return RedirectToAction("Index");
+            }
+        }
+        else
+        {
+            return RedirectToAction("Login", "Account");
+        }
+    }
+
+    [Authorize]
+    [HttpPost]
+    public IActionResult Transfer(int fromAccount, int toAccount,
+        string otherAccountNumber, decimal amount)
+    {
+        if (User?.Identity?.IsAuthenticated ?? false)
+        {
+            //needs verification
+            int to = 0;
+            (var userId, var user) = GetUser();
+            if (!OwnsAccount(user, fromAccount))
+            {
+                throw new Exception("User cant send from others account");
+            }
+            if (toAccount == 0)
+            {
+                //sendin to external account
+                if (int.TryParse(otherAccountNumber, out int toOtherAccount))
+                {
+                    to = toOtherAccount;
+                }
+                else
+                {
+                    RedirectToAction("Index"); //not valid number
+                }
+            }
+            else
+            {
+                to = toAccount;
+            }
+
+            //Do the transfer
+            Account fromAccountObject = GetAccountById(fromAccount);
+            Account toAccountObject = GetAccountById(to);
+            fromAccountObject.Balance -= amount;
+            toAccountObject.Balance += amount;
+            _dbContext.SaveChanges();
+        }
+        return RedirectToAction("Index");
+    }
+    private bool OwnsAccount(ApplicationUser user, int accountID) =>
+        _dbContext.Accounts
+            .Where(acc => acc.Id == accountID && acc.ApplicationUserId == user.Id)
+            .Any();
+    private Account GetAccountById(int accountId) =>
+        _dbContext.Accounts
+            .Where(acc => acc.Id == accountId)
+            .SingleOrDefault() ?? throw new Exception("Account cant be found");
+    private (string id, ApplicationUser user) GetUser()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? throw new Exception("Could not log in! cant find user");
+        var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault()
+            ?? throw new Exception("Could not log in! Cant load user!");
+        return (userId, user);
+    }
+
+
 
     // //[Authorize(Roles = "Leader")]
     // public IActionResult Account()

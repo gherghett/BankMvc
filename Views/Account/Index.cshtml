@@ -9,8 +9,61 @@
     <ul>
         @foreach(Account account in Model)
         {
-            <li>Account number: @account.Id Balance: @account.Balance <a class="button" asp-action="Delete" asp-route-id="@account.Id">Remove</a></li>
+            <li>
+                Account number: @account.Id 
+                Balance: @account.Balance 
+                <a class="button" asp-action="Delete" asp-route-accountId="@account.Id">Remove</a>
+                <a class="button" asp-action="Details" asp-route-accountId="@account.Id">Details</a>
+            </li>
         }
     </ul>
+
     <a class="button" asp-action="Add">Add Account</a>
+
+    <h2 class="mt-4">Transfer Money</h2>
+    <form asp-action="Transfer" method="post">
+        <div class="form-group">
+            <label for="fromAccount">From Account:</label>
+            <select id="fromAccount" name="fromAccount" class="form-control">
+                @foreach(Account account in Model)
+                {
+                    <option value="@account.Id">Account @account.Id - Balance: @account.Balance</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="toAccount">To Account:</label>
+            <select id="toAccount" name="toAccount" class="form-control">
+                <option value="other">Other</option>
+                @foreach(Account account in Model)
+                {
+                    <option value="@account.Id">Account @account.Id</option>
+                }
+            </select>
+        </div>
+
+        <div id="otherAccountInput" style="display: block;">
+            <label for="otherAccountNumber">Other Account Number:</label>
+            <input type="text" id="otherAccountNumber" name="otherAccountNumber" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="amount" min="0" class="form-control" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
 </div>
+
+<script>
+    document.getElementById('toAccount').addEventListener('change', function() {
+        var otherInput = document.getElementById('otherAccountInput');
+        if (this.value == 'other') {
+            otherInput.style.display = 'block';
+        } else {
+            otherInput.style.display = 'none';
+        }
+    });
+</script>

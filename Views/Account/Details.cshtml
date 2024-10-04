@@ -1,0 +1,38 @@
+
+@model MvcWithIdentityAndEFCore.Models.Account;
+@{
+    var name = User?.Identity?.Name ?? throw new Exception("Login error");
+    ViewData["Title"] = $"Account {Model.Id} - {name}";
+}
+
+<div class="container mt-5">
+    <h1 class="display-4 text-center mb-4">Account @Model.Id</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <table class="table table-bordered table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col" colspan="2" class="text-center">Account Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">ID</th>
+                        <td>@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Balance</th>
+                        <td>@Model.Balance.ToString("C")</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Owner</th>
+                        <td>@Model.ApplicationUser.UserName</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <a class="btn btn-primary" asp-action="Index">Back</a>
+    </div>
+</div>
