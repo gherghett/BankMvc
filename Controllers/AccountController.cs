@@ -139,6 +139,29 @@ public class AccountController : Controller
         return RedirectToAction("Index");
     }
 
+    // POST /Accounts/Deposit
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> Deposit(int accountId, decimal amount)
+    {
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        //For debug purposes
+        user.Accounts
+            .Where(acc => accountId == acc.Id)
+            .Single()
+            .Balance += amount;
+
+        _dbContext.SaveChanges();
+
+        return RedirectToAction("Details", new {accountId = accountId});
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

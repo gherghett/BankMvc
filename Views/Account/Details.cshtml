@@ -1,4 +1,5 @@
 @model BankMvcEf.Models.Account;
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = $"Account {Model.Id}";
     var history = Model.IncomingTransactions.Select(t => new
@@ -12,6 +13,7 @@
         Date = t.Time,
         Type = "Outgoing",
         Amount = t.Amount,
+
         FromTo = t.ToAccId
     })).OrderByDescending(t => t.Date).ToList();
 }
@@ -43,6 +45,14 @@
             </table>
         </div>
     </div>
+@if (HostEnvironment.IsDevelopment())
+{
+    <form asp-action="Deposit" method="post">
+        <input type="hidden" name="accountId" value="@Model.Id" />
+        <input type="hidden" name="amount" value="100" />
+        <button type="submit" class="button">Deposit 100kr</button>
+    </form>
+}
     <div class="row justify-content-center">
         <div class="col-md-8">
             <h2 class="text-center mb-3">Transaction History</h2>
