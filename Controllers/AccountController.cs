@@ -138,18 +138,6 @@ public class AccountController : Controller
         
         return RedirectToAction("Index");
     }
-    private Account GetAccountById(int accountId) =>
-        _dbContext.Accounts
-            .Where(acc => acc.Id == accountId)
-            .SingleOrDefault() ?? throw new Exception("Account cant be found");
-    private (string id, ApplicationUser user) GetIdAndUser()
-    {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? throw new Exception("Could not log in! cant find user");
-        var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault()
-            ?? throw new Exception("Could not log in! Cant load user!");
-        return (userId, user);
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
