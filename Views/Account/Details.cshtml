@@ -1,7 +1,19 @@
-
 @model MvcWithIdentityAndEFCore.Models.Account;
 @{
     ViewData["Title"] = $"Account {Model.Id}";
+    var history = Model.IncomingTransactions.Select(t => new
+    {
+        Date = t.Time,
+        Type = "Incoming",
+        Amount = t.Amount,
+        FromTo = t.FromAccId
+    }).Concat(Model.OutgoingTransactions.Select(t => new
+    {
+        Date = t.Time,
+        Type = "Outgoing",
+        Amount = t.Amount,
+        FromTo = t.ToAccId
+    })).OrderByDescending(t => t.Date).ToList();
 }
 
 <div class="container mt-5">
@@ -27,6 +39,32 @@
                         <th scope="row">Owner</th>
                         <td>@Model.ApplicationUser.UserName</td>
                     </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center mb-3">Transaction History</h2>
+            <table class="table table-bordered table-hover">
+                <thead class="table-secondary">
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">From/To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in history)
+                    {
+                        <tr class="@(transaction.Type == "Incoming" ? "table-success" : "table-danger")">
+                            <td>@transaction.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@transaction.Type</td>
+                            <td>@transaction.Amount.ToString("C")</td>
+                            <td>@transaction.FromTo</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

@@ -1,18 +1,19 @@
 @model MvcWithIdentityAndEFCore.Models.ApplicationUser;
 @{
     ViewData["Title"] = $"Accounts for {Model.Email}";
+    string? alert = (string?)TempData["Alert"];
 }
+<partial name="_Alert" model="@alert"/>
 
 <div class="text-center">
     <h1 class="display-4">Your Accounts</h1>
     <ul class="list-group">
-        @foreach(Account account in Model.Accounts)
+        @foreach (Account account in Model.Accounts)
         {
             <partial name="_AccountItem" model="@account" />
         }
     </ul>
 
-    <a class="button" asp-action="Transfer">Make new transfer</a><br/>
+    <a class="button" asp-action="Transfer">Make new transfer</a><br />
     <a class="button" asp-action="Add">Add Account</a>
-
-    
+    </

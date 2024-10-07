@@ -1,11 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using MvcWithIdentityAndEFCore.Data;
 using MvcWithIdentityAndEFCore.Models;
 using MvcWithIdentityAndEFCore.Services;
 
 public interface IAccountService
 {
-    ServiceResult<Transaction> Transfer(string userId ,int fromAccId, int toAccId, decimal amount);
+    ServiceResult<Transaction> Transfer(string userId, int fromAccId, int toAccId, decimal amount);
     ServiceResult<Account> Close(string userId, int accId);
+    ServiceResult<Account> New(string userId);
+    ServiceResult<Account> GetAccountWithHistory(int accId);
 }
 
 public class AccountService : IAccountService
@@ -21,14 +24,14 @@ public class AccountService : IAccountService
 
     public ServiceResult<Account> Close(string userId, int accId)
     {
-        if(!_userService.IsOwner(userId, accId))
+        if (!_userService.IsOwner(userId, accId))
         {
             return ServiceResult<Account>.Failed("not owner");
         }
 
         Account account = GetAccountById(accId);
 
-        if(account.Balance > 0)
+        if (account.Balance > 0)
         {
             return ServiceResult<Account>.Failed("Can't close account with money in it.");
         }
@@ -40,22 +43,62 @@ public class AccountService : IAccountService
 
     }
 
+    public ServiceResult<Account> GetAccountWithHistory(int accId)
+    {
+        try
+        {
+            var account = _dbContext.Accounts
+                .Where(acc => acc.Id == accId)
+                .Include(acc => acc.OutgoingTransactions)
+                .Include(acc => acc.IncomingTransactions)
+                .Single();
+            return ServiceResult<Account>.Succeeded(account);
+        } 
+        catch (Exception)
+        {
+            return ServiceResult<Account>.Failed();
+        }
+    }
+
+    public ServiceResult<Account> New(string userId)
+    {
+        try
+        {
+            // Create a new account
+            var newAccount = new Account
+            {
+                Balance = 0m,
+                ApplicationUserId = userId,
+            };
+            // Add the account to the DbContext
+            _dbContext.Add(newAccount);
+            // Save changes to the database
+            _dbContext.SaveChanges();
+            return ServiceResult<Account>.Succeeded(newAccount, "Created new Account");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<Account>.Failed(ex.Message);
+        }
+    }
+
     public ServiceResult<Transaction> Transfer(string userId, int fromAccId, int toAccId, decimal amount)
     {
-        if(!_userService.IsOwner(userId, fromAccId))
+        if (!_userService.IsOwner(userId, fromAccId))
         {
             return ServiceResult<Transaction>.Failed("sender is not owner");
         }
         Account fromAccount = GetAccountById(fromAccId);
 
-        if(fromAccount.Balance < amount)
+        if (fromAccount.Balance < amount)
         {
             return ServiceResult<Transaction>.Failed("amount is larger than balance");
         }
 
         //Do the transfer
         Account toAccount = GetAccountById(toAccId);
-        Transaction transaction = new Transaction{
+        Transaction transaction = new Transaction
+        {
             FromAcc = fromAccount,
             ToAcc = toAccount,
             Time = DateTime.Now,

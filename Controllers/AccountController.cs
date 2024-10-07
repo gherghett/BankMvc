@@ -52,10 +52,8 @@ public class AccountController : Controller
         var user  = userResult.Data;
 
         var result = _accountService.Close(user.Id, accountId);
-        Console.WriteLine("REmoved account");
-        Console.WriteLine(result.Message);
 
-        // Optionally redirect or return a view
+        TempData["Alert"] = result.Message;
         return RedirectToAction("Index");
     }
 
@@ -69,17 +67,9 @@ public class AccountController : Controller
         
         var user  = userResult.Data;
 
-        // Create a new account
-        var newAccount = new Account
-        {
-            Balance = 0,
-            ApplicationUser = user // Associate the account with the user
-        };
-        // Add the account to the DbContext
-        _dbContext.Accounts.Add(newAccount);
-        // Save changes to the database
-        await _dbContext.SaveChangesAsync();
-
+        var result = _accountService.New(user.Id);
+        
+        TempData["Alert"] = result.Message;
         return RedirectToAction("Index");
     }
 
@@ -98,7 +88,14 @@ public class AccountController : Controller
             return RedirectToAction("Index");
         }
 
-        return View(GetAccountById(accountId));
+        var result = _accountService.GetAccountWithHistory(accountId);
+        if(!result.WasSuccess)
+        {
+            TempData["Alert"] = result.Message;
+            return RedirectToAction("Index");
+        }
+
+        return View(result.Data);
     }
 
     [Authorize]
@@ -131,7 +128,8 @@ public class AccountController : Controller
         if(toAccount == 0)
         {
             if(!int.TryParse(otherAccountNumber, out toAccount))
-            {
+            {   
+                TempData["Alert"] = "Invalid account Id";
                 return RedirectToAction("Index");
             }
         }

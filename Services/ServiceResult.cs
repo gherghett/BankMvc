@@ -13,7 +13,7 @@ public class ServiceResult<T>
     
     public static ServiceResult<T> Succeeded(T data, string message = "")
     {
-        return new ServiceResult<T>(true, data);
+        return new ServiceResult<T>(true, data, message);
     }
 
     public static ServiceResult<T> Failed(string message = "")
