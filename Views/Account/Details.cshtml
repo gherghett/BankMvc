@@ -1,8 +1,7 @@
 
 @model MvcWithIdentityAndEFCore.Models.Account;
 @{
-    var name = User?.Identity?.Name ?? throw new Exception("Login error");
-    ViewData["Title"] = $"Account {Model.Id} - {name}";
+    ViewData["Title"] = $"Account {Model.Id}";
 }
 
 <div class="container mt-5">

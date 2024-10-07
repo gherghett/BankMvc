@@ -2,9 +2,11 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MvcWithIdentityAndEFCore.Models;
+using MvcWithIdentityAndEFCore.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MvcWithIdentityAndEFCore.Data;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 
 namespace MvcWithIdentityAndEFCore.Controllers;
@@ -13,194 +15,153 @@ public class AccountController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IUserService _userService;
+    private readonly IAccountService _accountService;
 
     public AccountController
     (
         ILogger<HomeController> logger,
         ApplicationDbContext dbContext,
-        UserManager<ApplicationUser> userManager
+        IUserService userService,
+        IAccountService accountService
     )
     {
         _dbContext = dbContext;
         _logger = logger;
+        _userService = userService;
+        _accountService = accountService;
     }
 
-
     [Authorize]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        // Check if the user is authenticated
-        if (User?.Identity?.IsAuthenticated ?? false)
-        {
-            // Get the user ID from the ClaimsPrincipal
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
-            if (user is null)
-            {
-                throw new Exception("Couldnt find user");
-            }
-            return View(user.Accounts.ToList());
-        }
-        else
-            return RedirectToAction("Login", "Account");
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+
+        return View(userResult.Data);
     }
 
     [Authorize]
     public async Task<IActionResult> Delete(int accountId)
     {
-        if (User?.Identity?.IsAuthenticated ?? false)
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        // if the user the owner
+        if (_userService.IsOwner(user.Id, accountId))
         {
-            // Get the user
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
-
-            if (user is null)
-            {
-                throw new Exception("Couldnt find user");
-            }
-
-            // if the user the owner
-            if (OwnsAccount(user, accountId))
-            {
-                _dbContext
-                .Remove(
-                    user
-                    .Accounts
-                        .Where(acc => acc.Id == accountId)
-                        .SingleOrDefault()!);
-            }
-            else
-            {
-                // not the users account
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Save changes to the database
-            await _dbContext.SaveChangesAsync();
-
-            // Optionally redirect or return a view
-            return RedirectToAction("Index");
+            _dbContext
+            .Remove(
+                user
+                .Accounts
+                    .Where(acc => acc.Id == accountId)
+                    .SingleOrDefault()!);
         }
         else
         {
+            // not the users account
             return RedirectToAction("Login", "Account");
         }
+
+        // Save changes to the database
+        await _dbContext.SaveChangesAsync();
+
+        // Optionally redirect or return a view
+        return RedirectToAction("Index");
     }
 
     [Authorize]
     public async Task<IActionResult> Add()
     {
-        if (User?.Identity?.IsAuthenticated ?? false)
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        // Create a new account
+        var newAccount = new Account
         {
-            // Get the user ID from the ClaimsPrincipal
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var user = _dbContext.Users.Where(u => userId == u.Id).Include(u => u.Accounts).SingleOrDefault();
+            Balance = 0,
+            ApplicationUser = user // Associate the account with the user
+        };
+        // Add the account to the DbContext
+        _dbContext.Accounts.Add(newAccount);
+        // Save changes to the database
+        await _dbContext.SaveChangesAsync();
 
-            if (user is null || userId is null)
-            {
-                throw new Exception("Couldnt find user");
-            }
-            // Create a new account
-            var newAccount = new Account
-            {
-                Balance = 0,
-                ApplicationUser = user // Associate the account with the user
-            };
-
-            var myaccts = _dbContext.Accounts
-                .Where(acc => acc.ApplicationUser.Id == userId).ToList();
-            // Add the account to the DbContext
-            _dbContext.Accounts.Add(newAccount);
-
-            // Save changes to the database
-            await _dbContext.SaveChangesAsync();
-
-            // Optionally redirect or return a view
-            return RedirectToAction("Index");
-        }
-        else
-        {
-            return RedirectToAction("Login", "Account");
-        }
+        return RedirectToAction("Index");
     }
 
     [Authorize]
-    public IActionResult Details(int accountId)
+    public async Task<IActionResult> Details(int accountId)
     {
-        if (User?.Identity?.IsAuthenticated ?? false)
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        if (!_userService.IsOwner(user.Id, accountId))
         {
-            (var userId, var user) = GetUser();
-
-            if (user is null || userId is null)
-            {
-                throw new Exception("Couldnt find user");
-            }
-            if (OwnsAccount(user, accountId))
-            {
-
-                return View(GetAccountById(accountId));
-
-            }
-            else
-            {
-                return RedirectToAction("Index");
-            }
+            return RedirectToAction("Index");
         }
-        else
-        {
-            return RedirectToAction("Login", "Account");
-        }
+
+        return View(GetAccountById(accountId));
+    }
+
+    [Authorize]
+    public async Task<IActionResult> Transfer()
+    {
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
+
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        return View(user.Accounts.ToList());
     }
 
     [Authorize]
     [HttpPost]
-    public IActionResult Transfer(int fromAccount, int toAccount,
+    public async Task<IActionResult> Transfer(int fromAccount, int toAccount,
         string otherAccountNumber, decimal amount)
     {
-        if (User?.Identity?.IsAuthenticated ?? false)
-        {
-            //needs verification
-            int to = 0;
-            (var userId, var user) = GetUser();
-            if (!OwnsAccount(user, fromAccount))
-            {
-                throw new Exception("User cant send from others account");
-            }
-            if (toAccount == 0)
-            {
-                //sendin to external account
-                if (int.TryParse(otherAccountNumber, out int toOtherAccount))
-                {
-                    to = toOtherAccount;
-                }
-                else
-                {
-                    RedirectToAction("Index"); //not valid number
-                }
-            }
-            else
-            {
-                to = toAccount;
-            }
+        var userResult = await _userService.GetUserWithAccountsAsync(User);
 
-            //Do the transfer
-            Account fromAccountObject = GetAccountById(fromAccount);
-            Account toAccountObject = GetAccountById(to);
-            fromAccountObject.Balance -= amount;
-            toAccountObject.Balance += amount;
-            _dbContext.SaveChanges();
+        if (!userResult.WasSuccess)
+            throw new Exception("couldnt load user");
+        
+        var user  = userResult.Data;
+
+        // this value being 0 means the account number was manually filled in
+        // so we read the manual field
+        if(toAccount == 0)
+        {
+            if(!int.TryParse(otherAccountNumber, out toAccount))
+            {
+                return RedirectToAction("Index");
+            }
         }
+
+        _accountService.Transfer(user.Id, fromAccount, toAccount, amount);
+        
         return RedirectToAction("Index");
     }
-    private bool OwnsAccount(ApplicationUser user, int accountID) =>
-        _dbContext.Accounts
-            .Where(acc => acc.Id == accountID && acc.ApplicationUserId == user.Id)
-            .Any();
     private Account GetAccountById(int accountId) =>
         _dbContext.Accounts
             .Where(acc => acc.Id == accountId)
             .SingleOrDefault() ?? throw new Exception("Account cant be found");
-    private (string id, ApplicationUser user) GetUser()
+    private (string id, ApplicationUser user) GetIdAndUser()
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new Exception("Could not log in! cant find user");
@@ -208,14 +169,6 @@ public class AccountController : Controller
             ?? throw new Exception("Could not log in! Cant load user!");
         return (userId, user);
     }
-
-
-
-    // //[Authorize(Roles = "Leader")]
-    // public IActionResult Account()
-    // {
-    //     return View();
-    // }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

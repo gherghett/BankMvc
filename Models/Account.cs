@@ -16,4 +16,7 @@ public class Account
     public string ApplicationUserId { get; set; } =null!;
     public ApplicationUser ApplicationUser { get; set; } = null!;
 
+    public List<Transaction> OutgoingTransactions { get; set; } = null!;
+    public List<Transaction> IncomingTransactions { get; set; } = null!;
+
 }

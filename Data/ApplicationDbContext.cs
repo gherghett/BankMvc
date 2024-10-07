@@ -8,6 +8,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     // DbSet för din applikationsdata
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
     //public DbSet<ApplicationUser> Users { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -23,5 +24,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(a => a.ApplicationUser) // Each Account has one ApplicationUser
             .WithMany(au => au.Accounts)     // An ApplicationUser can have many Accounts
             .HasForeignKey(a => a.ApplicationUserId); // Specify the foreign key if not convention-based
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.FromAcc)
+            .WithMany(a => a.OutgoingTransactions)
+            .HasForeignKey(t => t.FromAccId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.ToAcc)
+            .WithMany(a => a.IncomingTransactions)
+            .HasForeignKey(t => t.ToAccId)
+            .OnDelete(DeleteBehavior.Restrict);
+    
     }
 }

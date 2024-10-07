@@ -1,0 +1,13 @@
+@using MvcWithIdentityAndEFCore.Models;
+@model Account;
+
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+        <span class="text-muted me-3">Acc: @Model.Id</span>
+        <strong class="fs-5">@(Model.Balance)kr</strong>
+    </div>
+    <div>
+        <a class="btn btn-outline-danger btn-sm me-2" asp-action="Delete" asp-route-accountId="@Model.Id">Remove</a>
+        <a class="btn btn-outline-primary btn-sm" asp-action="Details" asp-route-accountId="@Model.Id">Details</a>
+    </div>
+</li>

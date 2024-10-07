@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MvcWithIdentityAndEFCore.Data;
 using MvcWithIdentityAndEFCore.Models;
+using MvcWithIdentityAndEFCore.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,10 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddRoles<IdentityRole>() // Default roles, using strings as key
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 var app = builder.Build();
 
