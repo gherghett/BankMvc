@@ -5,6 +5,7 @@ using MvcWithIdentityAndEFCore.Services;
 public interface IAccountService
 {
     ServiceResult<Transaction> Transfer(string userId ,int fromAccId, int toAccId, decimal amount);
+    ServiceResult<Account> Close(string userId, int accId);
 }
 
 public class AccountService : IAccountService
@@ -17,6 +18,28 @@ public class AccountService : IAccountService
         _userService = userService;
         //add logger
     }
+
+    public ServiceResult<Account> Close(string userId, int accId)
+    {
+        if(!_userService.IsOwner(userId, accId))
+        {
+            return ServiceResult<Account>.Failed("not owner");
+        }
+
+        Account account = GetAccountById(accId);
+
+        if(account.Balance > 0)
+        {
+            return ServiceResult<Account>.Failed("Can't close account with money in it.");
+        }
+
+        account.Closed = true;
+        _dbContext.SaveChanges();
+
+        return ServiceResult<Account>.Succeeded(account, "The Account was closed");
+
+    }
+
     public ServiceResult<Transaction> Transfer(string userId, int fromAccId, int toAccId, decimal amount)
     {
         if(!_userService.IsOwner(userId, fromAccId))

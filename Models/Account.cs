@@ -19,4 +19,6 @@ public class Account
     public List<Transaction> OutgoingTransactions { get; set; } = null!;
     public List<Transaction> IncomingTransactions { get; set; } = null!;
 
+    public bool Closed {get; set;} = false;
+
 }

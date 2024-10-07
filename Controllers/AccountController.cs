@@ -47,30 +47,13 @@ public class AccountController : Controller
     public async Task<IActionResult> Delete(int accountId)
     {
         var userResult = await _userService.GetUserWithAccountsAsync(User);
-
         if (!userResult.WasSuccess)
-            throw new Exception("couldnt load user");
-        
+                throw new Exception("couldnt load user");
         var user  = userResult.Data;
 
-        // if the user the owner
-        if (_userService.IsOwner(user.Id, accountId))
-        {
-            _dbContext
-            .Remove(
-                user
-                .Accounts
-                    .Where(acc => acc.Id == accountId)
-                    .SingleOrDefault()!);
-        }
-        else
-        {
-            // not the users account
-            return RedirectToAction("Login", "Account");
-        }
-
-        // Save changes to the database
-        await _dbContext.SaveChangesAsync();
+        var result = _accountService.Close(user.Id, accountId);
+        Console.WriteLine("REmoved account");
+        Console.WriteLine(result.Message);
 
         // Optionally redirect or return a view
         return RedirectToAction("Index");

@@ -26,7 +26,7 @@ public class UserService : IUserService
         var userId = claim.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         var user = await _applicationDbContext.Users
             .Where(u => u.Id == userId)
-            .Include(u => u.Accounts)
+            .Include(u => u.Accounts.Where(a => !a.Closed))
             .SingleOrDefaultAsync();
 
         if( user is null )
