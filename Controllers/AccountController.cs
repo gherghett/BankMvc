@@ -32,6 +32,7 @@ public class AccountController : Controller
         _accountService = accountService;
     }
 
+    // GET: /Account
     [Authorize]
     public async Task<IActionResult> Index()
     {
@@ -43,6 +44,8 @@ public class AccountController : Controller
         return View(userResult.Data);
     }
 
+    // GET: /Account/Delete?accountId={accountId}
+    // Redirects to GET: /Account
     [Authorize]
     public async Task<IActionResult> Delete(int accountId)
     {
@@ -57,6 +60,8 @@ public class AccountController : Controller
         return RedirectToAction("Index");
     }
 
+    // GET: /Account/Add
+    // Redirects to GET: /Account
     [Authorize]
     public async Task<IActionResult> Add()
     {
@@ -73,6 +78,7 @@ public class AccountController : Controller
         return RedirectToAction("Index");
     }
 
+    // GET: /Account/Details?accountId={accountId}
     [Authorize]
     public async Task<IActionResult> Details(int accountId)
     {
@@ -98,6 +104,7 @@ public class AccountController : Controller
         return View(result.Data);
     }
 
+    // GET: /Account/Transfer
     [Authorize]
     public async Task<IActionResult> Transfer()
     {
@@ -111,6 +118,8 @@ public class AccountController : Controller
         return View(user.Accounts.ToList());
     }
 
+    // POST: /Account/Transfer
+    // Redirects to GET: /Account
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Transfer(int fromAccount, int toAccount,
@@ -139,7 +148,8 @@ public class AccountController : Controller
         return RedirectToAction("Index");
     }
 
-    // POST /Accounts/Deposit
+    // POST: /Account/Deposit
+    // Redirects to GET: /Account/Details?accountId={accountId}
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Deposit(int accountId, decimal amount)
