@@ -1,4 +1,4 @@
-@model MvcWithIdentityAndEFCore.Models.Account;
+@model BankMvcEf.Models.Account;
 @{
     ViewData["Title"] = $"Account {Model.Id}";
     var history = Model.IncomingTransactions.Select(t => new

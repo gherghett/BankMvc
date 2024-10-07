@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-MvcWithIdentityAndEFCore-80777244-a421-452c-8928-57c969b51b36</UserSecretsId>
+    <UserSecretsId>aspnet-BankMvcEf-80777244-a421-452c-8928-57c969b51b36</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

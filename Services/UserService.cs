@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using MvcWithIdentityAndEFCore.Data;
-using MvcWithIdentityAndEFCore.Models;
-namespace MvcWithIdentityAndEFCore.Services;
+using BankMvcEf.Data;
+using BankMvcEf.Models;
+namespace BankMvcEf.Services;
 public interface IUserService
 {
     public Task<ServiceResult<ApplicationUser>> 

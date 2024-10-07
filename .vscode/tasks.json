@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/MvcWithIdentityAndEFCore.sln",
+                "${workspaceFolder}/BankMvcEf.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/MvcWithIdentityAndEFCore.sln",
+                "${workspaceFolder}/BankMvcEf.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/MvcWithIdentityAndEFCore.sln"
+                "${workspaceFolder}/BankMvcEf.sln"
             ],
             "problemMatcher": "$msCompile"
         }

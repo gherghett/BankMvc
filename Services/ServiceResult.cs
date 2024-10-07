@@ -1,4 +1,4 @@
-namespace MvcWithIdentityAndEFCore.Services;
+namespace BankMvcEf.Services;
 public class ServiceResult<T> 
 {
     public T Data { get; private init;}

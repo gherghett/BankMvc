@@ -1,4 +1,4 @@
-namespace MvcWithIdentityAndEFCore.Models;
+namespace BankMvcEf.Models;
 
 public class ErrorViewModel
 {

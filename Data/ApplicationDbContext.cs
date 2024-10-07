@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using MvcWithIdentityAndEFCore.Models;
+using BankMvcEf.Models;
 using SQLitePCL;
-namespace MvcWithIdentityAndEFCore.Data;
+namespace BankMvcEf.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {

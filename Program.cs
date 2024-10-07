@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MvcWithIdentityAndEFCore.Data;
-using MvcWithIdentityAndEFCore.Models;
-using MvcWithIdentityAndEFCore.Services;
+using BankMvcEf.Data;
+using BankMvcEf.Models;
+using BankMvcEf.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

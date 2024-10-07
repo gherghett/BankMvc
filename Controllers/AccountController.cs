@@ -1,26 +1,26 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MvcWithIdentityAndEFCore.Models;
-using MvcWithIdentityAndEFCore.Services;
+using BankMvcEf.Models;
+using BankMvcEf.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MvcWithIdentityAndEFCore.Data;
+using BankMvcEf.Data;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 
-namespace MvcWithIdentityAndEFCore.Controllers;
+namespace BankMvcEf.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly ILogger<AccountController> _logger;
     private readonly ApplicationDbContext _dbContext;
     private readonly IUserService _userService;
     private readonly IAccountService _accountService;
 
     public AccountController
     (
-        ILogger<HomeController> logger,
+        ILogger<AccountController> logger,
         ApplicationDbContext dbContext,
         IUserService userService,
         IAccountService accountService

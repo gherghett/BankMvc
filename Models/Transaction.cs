@@ -1,5 +1,5 @@
 
-using MvcWithIdentityAndEFCore.Models;
+using BankMvcEf.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

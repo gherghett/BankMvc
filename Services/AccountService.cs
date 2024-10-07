@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using MvcWithIdentityAndEFCore.Data;
-using MvcWithIdentityAndEFCore.Models;
-using MvcWithIdentityAndEFCore.Services;
+using BankMvcEf.Data;
+using BankMvcEf.Models;
+using BankMvcEf.Services;
 
 public interface IAccountService
 {

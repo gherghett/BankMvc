@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-namespace MvcWithIdentityAndEFCore.Models;
+namespace BankMvcEf.Models;
 
 public class ApplicationUser : IdentityUser
 {
