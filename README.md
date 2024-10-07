@@ -1,4 +1,5 @@
 # Bank app using Mvc
+![Screenshot](screenshot.png)
 This was an educational exercise .NET Core project, testing out EFCore and using Model-View-Controller to Structure a WebApp. 
 ## Users
 
